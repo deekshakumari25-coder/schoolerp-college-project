@@ -1,9 +1,9 @@
-import { createContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useState, useEffect, type ReactNode } from 'react';
 
 // Create the context
 export const AuthContext = createContext({
   token: null as string | null,
-  login: (token: string) => {},
+  login: (_token: string) => {},
   logout: () => {},
 });
 
