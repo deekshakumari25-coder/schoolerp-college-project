@@ -8,8 +8,10 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+const router = express.Router();
+
 // Auth Route
-app.post('/login', (req, res) => {
+router.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (username === 'admin' && password === 'admin') {
     return res.json({ success: true, token: 'mock-admin-token-123' });
@@ -18,14 +20,13 @@ app.post('/login', (req, res) => {
 });
 
 // Students API
-app.get('/students', async (req, res) => {
+router.get('/students', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT s.*, c."className" 
       FROM students s 
       LEFT JOIN classes c ON s."classId" = c.id
     `);
-    // Map back to what frontend expects (classId object and _id)
     const students = result.rows.map(row => ({
       ...row,
       _id: row.id,
@@ -37,7 +38,7 @@ app.get('/students', async (req, res) => {
   }
 });
 
-app.post('/students', async (req, res) => {
+router.post('/students', async (req, res) => {
   try {
     const { name, rollNo, classId } = req.body;
     const result = await pool.query(
@@ -51,7 +52,7 @@ app.post('/students', async (req, res) => {
 });
 
 // Classes API
-app.get('/classes', async (req, res) => {
+router.get('/classes', async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM classes');
     const classes = result.rows.map(row => ({ ...row, _id: row.id }));
@@ -61,7 +62,7 @@ app.get('/classes', async (req, res) => {
   }
 });
 
-app.post('/classes', async (req, res) => {
+router.post('/classes', async (req, res) => {
   try {
     const { className, teacherName } = req.body;
     const result = await pool.query(
@@ -75,7 +76,7 @@ app.post('/classes', async (req, res) => {
 });
 
 // Timetable API
-app.get('/timetable', async (req, res) => {
+router.get('/timetable', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT t.*, c."className" 
@@ -93,7 +94,7 @@ app.get('/timetable', async (req, res) => {
   }
 });
 
-app.post('/timetable', async (req, res) => {
+router.post('/timetable', async (req, res) => {
   try {
     const { classId, day, subject, time } = req.body;
     const result = await pool.query(
@@ -107,7 +108,7 @@ app.post('/timetable', async (req, res) => {
 });
 
 // Exams API
-app.get('/exams', async (req, res) => {
+router.get('/exams', async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT e.*, c."className" 
@@ -125,7 +126,7 @@ app.get('/exams', async (req, res) => {
   }
 });
 
-app.post('/exams', async (req, res) => {
+router.post('/exams', async (req, res) => {
   try {
     const { eventName, date, classId, subject } = req.body;
     const result = await pool.query(
@@ -137,5 +138,9 @@ app.post('/exams', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// Mount router on both /api (Vercel) and / (Local)
+app.use('/api', router);
+app.use('/', router);
 
 export default app;
