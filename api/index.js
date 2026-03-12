@@ -34,7 +34,8 @@ router.get('/students', async (req, res) => {
     }));
     res.json(students);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -47,7 +48,8 @@ router.post('/students', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -58,7 +60,8 @@ router.get('/classes', async (req, res) => {
     const classes = result.rows.map(row => ({ ...row, _id: row.id }));
     res.json(classes);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -71,7 +74,8 @@ router.post('/classes', async (req, res) => {
     );
     res.json({ ...result.rows[0], _id: result.rows[0].id });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -90,7 +94,8 @@ router.get('/timetable', async (req, res) => {
     }));
     res.json(timetable);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -103,7 +108,8 @@ router.post('/timetable', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -122,7 +128,8 @@ router.get('/exams', async (req, res) => {
     }));
     res.json(exams);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
@@ -135,7 +142,8 @@ router.post('/exams', async (req, res) => {
     );
     res.json(result.rows[0]);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('API Error:', err);
+    res.status(500).json({ error: 'Database error', details: err.message, code: err.code });
   }
 });
 
