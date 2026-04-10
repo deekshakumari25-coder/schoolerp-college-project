@@ -1,21 +1,58 @@
-# React + TypeScript + Vite + shadcn/ui
+# School Management Portal
 
-This is a template for a new Vite project with React, TypeScript, and shadcn/ui.
+A modern, fast, and fully-featured school management system built using React (Frontend) and FastAPI (Backend) with MongoDB.
 
-## Adding components
+## 🚀 How to Run the Project
 
-To add components to your app, run the following command:
+This project requires two terminals to run simultaneously: one for the React frontend and one for the FastAPI backend.
+
+### 1. Start the Backend (FastAPI)
+Open a terminal and navigate to the `backend` directory.
 
 ```bash
-npx shadcn@latest add button
+cd backend
+# Install dependencies (only needed once)
+pip install -r requirements.txt
+
+# Start the server
+uvicorn app.main:app --reload
 ```
+*The backend will be available at http://localhost:8000*
 
-This will place the ui components in the `src/components` directory.
+### 2. Start the Frontend (React + Vite)
+Open a **second** terminal and stay in the root project directory.
 
-## Using components
+```bash
+# Install dependencies (only needed once)
+bun install  # or npm install
 
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button"
+# Start the frontend
+bun run dev  # or npm run dev
 ```
+*The frontend will launch and generally be available at http://localhost:5173*
+
+---
+
+## 📂 Project Structure Explained
+
+The project is split cleanly into two distinct parts:
+
+### `/backend` (Python + FastAPI)
+Contains all the database logic, security authentication, and API endpoints.
+
+- `/backend/app/main.py`: The entry point for the backend server.
+- `/backend/app/routers/`: Contains all our API routes grouped logically (e.g., `admin.py`, `auth.py`). 
+- `/backend/app/schemas.py`: Defines entirely typing and data validation schemas (Pydantic models) used for database transactions. 
+- `/backend/app/deps.py`: Contains dependencies like database connections and authentication gates. 
+- `/backend/scripts/seed.py`: A very useful script that lets you erase and populate the database with dummy students and teachers instantly. Run `python scripts/seed.py` from within the backend folder.
+
+### `/src` (React + TypeScript + Tailwind)
+Contains the beautiful User Interface for admins, teachers, and students.
+
+- `/src/pages/`: All the main pages of the application (e.g., `Login.tsx`, `Dashboard.tsx`, `AdminTeachers.tsx`, `Timetable.tsx`). These correlate directly with the routes the user sees.
+- `/src/components/`: Re-usable building blocks and layout pieces, like the top `PortalHeader.tsx`.
+- `/src/lib/api.ts`: A centralized file that handles talking to the backend (Axios config), so elements like login-tokens are handled automatically.
+- `index.css`: Where global Tailwind CSS imports exist.
+
+## 🔐 Authentication
+When logging in, the frontend sends a request to the backend `auth` endpoints. It safely uses JWT tokens to prove who you are with every subsequent request. Admin accounts have different access levels compared to Teacher or Student accounts. 
