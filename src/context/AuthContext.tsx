@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components -- AuthContext exported with Provider */
 import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
 import { api } from '@/lib/api';
 import type { UserMe } from '@/types/auth';
@@ -6,7 +7,7 @@ export const AuthContext = createContext({
   token: null as string | null,
   user: null as UserMe | null,
   loading: true,
-  login: (_token: string, _user: UserMe) => {},
+  login: (() => {}) as (token: string, user: UserMe) => void,
   logout: () => {},
   refreshMe: async () => {},
 });
@@ -26,6 +27,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await api.get<UserMe>('/api/auth/me');
       setUser(data);
+      setToken(t);
     } catch {
       setUser(null);
       setToken(null);

@@ -1,7 +1,29 @@
 import { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { AuthContext } from '../context/AuthContext';
+import { api } from '@/lib/api';
+import { AuthContext } from '@/context/AuthContext';
+import type { Role, UserMe } from '@/types/auth';
+
+interface LoginResponse {
+  token: string;
+  username: string;
+  role: Role;
+  displayName: string;
+  isClassTeacher: boolean;
+  homeroomClassId: string | null;
+  subjectsTaught: { classId: string; subjectName: string }[];
+}
+
+function toUserMe(r: LoginResponse): UserMe {
+  return {
+    username: r.username,
+    role: r.role,
+    displayName: r.displayName,
+    isClassTeacher: r.isClassTeacher,
+    homeroomClassId: r.homeroomClassId,
+    subjectsTaught: r.subjectsTaught ?? [],
+  };
+}
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -12,14 +34,16 @@ export default function Login() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     try {
-      const response = await axios.post('/api/login', { username, password });
-      if (response.data.success) {
-        login(response.data.token);
-        navigate('/');
-      }
-    } catch (err) {
-      setError('Invalid username or password. Try admin/admin.');
+      const { data } = await api.post<LoginResponse>('/api/auth/login', { username, password });
+      login(data.token, toUserMe(data));
+      if (data.role === 'admin') navigate('/admin', { replace: true });
+      else if (data.role === 'teacher')
+        navigate(data.isClassTeacher ? '/teacher/my-class' : '/teacher/no-class', { replace: true });
+      else navigate('/student', { replace: true });
+    } catch {
+      setError('Invalid username or password.');
     }
   };
 
@@ -27,8 +51,8 @@ export default function Login() {
     <div className="flex h-screen w-full items-center justify-center bg-zinc-50 dark:bg-zinc-950">
       <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-xl dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">School Admin</h1>
-          <p className="text-zinc-500 dark:text-zinc-400">Enter your credentials to manage the school</p>
+          <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-2">School portal</h1>
+          <p className="text-zinc-500 dark:text-zinc-400">Sign in as admin, teacher, or student</p>
         </div>
 
         {error && (
@@ -46,7 +70,7 @@ export default function Login() {
               className="w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              placeholder="admin"
+              autoComplete="username"
             />
           </div>
 
@@ -58,7 +82,7 @@ export default function Login() {
               className="w-full rounded-lg border border-zinc-300 px-4 py-2 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
+              autoComplete="current-password"
             />
           </div>
 
@@ -66,13 +90,14 @@ export default function Login() {
             type="submit"
             className="w-full rounded-lg bg-blue-600 px-4 py-2 text-white font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-zinc-900 transition-colors"
           >
-            Sign In
+            Sign in
           </button>
         </form>
 
-        <div className="mt-6 text-center text-sm text-zinc-500">
-          Demo Credentials: <b>admin</b> / <b>admin</b>
-        </div>
+        <p className="mt-6 text-center text-xs text-zinc-500">
+          Run <code className="bg-zinc-100 dark:bg-zinc-800 px-1 rounded">python backend/scripts/seed.py</code> for
+          demo users: admin/admin, teacher/teacher, student/student
+        </p>
       </div>
     </div>
   );

@@ -59,6 +59,7 @@ async def login(body: LoginBody):
 
     return TokenResponse(
         token=token,
+        username=user["username"],
         role=role,
         displayName=display_name,
         isClassTeacher=is_class_teacher,

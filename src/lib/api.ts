@@ -17,9 +17,12 @@ api.interceptors.response.use(
   (r) => r,
   (err) => {
     if (err.response?.status === 401) {
-      localStorage.removeItem('token');
-      if (!window.location.pathname.startsWith('/login')) {
-        window.location.href = '/login';
+      const url = String(err.config?.url ?? '');
+      if (!url.includes('/api/auth/login')) {
+        localStorage.removeItem('token');
+        if (!window.location.pathname.startsWith('/login')) {
+          window.location.href = '/login';
+        }
       }
     }
     return Promise.reject(err);

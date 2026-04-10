@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import { api } from '@/lib/api';
 import { IconUsers, IconBooks, IconCalendarEvent, IconFileCertificate } from '@tabler/icons-react';
 
 export default function Dashboard() {
@@ -10,10 +10,10 @@ export default function Dashboard() {
     async function fetchStats() {
       try {
         const [students, classes, timetable, exams] = await Promise.all([
-          axios.get('/api/students'),
-          axios.get('/api/classes'),
-          axios.get('/api/timetable'),
-          axios.get('/api/exams')
+          api.get('/api/students'),
+          api.get('/api/classes'),
+          api.get('/api/timetable'),
+          api.get('/api/exams'),
         ]);
         
         setStats({
@@ -61,7 +61,7 @@ export default function Dashboard() {
       <div className="mt-8 rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
         <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-4">Welcome to School Admin</h3>
         <p className="text-zinc-600 dark:text-zinc-400">
-          This is a simple dashboard to manage your school's entities. Use the sidebar on the left to navigate to Students, Classes, Timetables, and Exams.
+          Use the sidebar to manage students, teachers, classes, timetables, exams, and school branding.
         </p>
       </div>
     </div>
