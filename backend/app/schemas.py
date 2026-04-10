@@ -43,8 +43,18 @@ class TeacherCreate(BaseModel):
     subjectAssignments: list[dict[str, str]] = []
 
 
+class TeacherUpdate(BaseModel):
+    name: str | None = None
+    subjectAssignments: list[dict[str, str]] | None = None
+
+
 class ClassCreate(BaseModel):
     className: str
+    classTeacherId: str | None = None
+
+
+class ClassUpdate(BaseModel):
+    className: str | None = None
     classTeacherId: str | None = None
 
 
@@ -65,6 +75,12 @@ class StudentCreate(BaseModel):
     password: str | None = None
 
 
+class StudentUpdate(BaseModel):
+    name: str | None = None
+    rollNo: str | None = None
+    classId: str | None = None
+
+
 class TimetableCreate(BaseModel):
     scope: Literal["class", "teacher"] = "class"
     classId: str | None = None
@@ -81,6 +97,12 @@ class ExamCreate(BaseModel):
     classId: str
     subject: str | None = None
     session: str | None = None
+
+
+class ExamUpdate(BaseModel):
+    eventName: str | None = None
+    date: str | None = None
+    subject: str | None = None
 
 
 class AttendanceBulkBody(BaseModel):

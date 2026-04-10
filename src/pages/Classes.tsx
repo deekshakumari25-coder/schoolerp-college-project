@@ -21,6 +21,7 @@ export default function Classes() {
 
   const [className, setClassName] = useState('');
   const [classTeacherId, setClassTeacherId] = useState('');
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchData();
@@ -41,17 +42,40 @@ export default function Classes() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     try {
-      await api.post('/api/classes', {
-        className,
-        classTeacherId: classTeacherId || null,
-      });
+      if (editingId) {
+        await api.patch(`/api/admin/classes/${editingId}`, {
+          className,
+          classTeacherId: classTeacherId || null,
+        });
+        setEditingId(null);
+      } else {
+        await api.post('/api/classes', {
+          className,
+          classTeacherId: classTeacherId || null,
+        });
+      }
       setShowAdd(false);
       setClassName('');
       setClassTeacherId('');
       fetchData();
     } catch {
-      alert('Error saving class');
+      alert(editingId ? 'Error updating class' : 'Error saving class');
     }
+  }
+
+  function startEdit(c: ClassRow) {
+    setEditingId(c._id);
+    setClassName(c.className);
+    setClassTeacherId(c.classTeacherId || '');
+    setShowAdd(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setShowAdd(false);
+    setClassName('');
+    setClassTeacherId('');
   }
 
   if (loading) return <div>Loading classes...</div>;
@@ -60,19 +84,34 @@ export default function Classes() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Classes</h2>
-        <button
-          type="button"
-          onClick={() => setShowAdd(!showAdd)}
-          className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
-        >
-          <IconPlus className="w-5 h-5 mr-1" />
-          Add Class
-        </button>
+        {!showAdd && (
+          <button
+            type="button"
+            onClick={() => setShowAdd(!showAdd)}
+            className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+          >
+            <IconPlus className="w-5 h-5 mr-1" />
+            Add Class
+          </button>
+        )}
       </div>
 
       {showAdd && (
-        <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
-          <h3 className="text-lg font-semibold mb-4 text-zinc-900 dark:text-white">New Class</h3>
+        <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm relative">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
+              {editingId ? 'Edit Class' : 'New Class'}
+            </h3>
+            {editingId && (
+              <button
+                type="button"
+                onClick={cancelEdit}
+                className="text-sm text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+              >
+                Cancel edit
+              </button>
+            )}
+          </div>
           <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-end">
             <div className="flex-1">
               <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
@@ -126,8 +165,16 @@ export default function Classes() {
               key={c._id}
               className="bg-white dark:bg-zinc-900 p-6 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors"
             >
-              <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex items-center justify-center text-xl font-bold mb-4">
-                {String(c.className).charAt(0)}
+              <div className="flex justify-between items-start mb-4">
+                <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-lg flex items-center justify-center text-xl font-bold">
+                  {String(c.className).charAt(0)}
+                </div>
+                <button
+                  onClick={() => startEdit(c)}
+                  className="text-sm font-medium text-emerald-600 hover:text-emerald-800 dark:hover:text-emerald-400"
+                >
+                  Edit
+                </button>
               </div>
               <h3 className="text-xl font-bold text-zinc-900 dark:text-white mb-1">{c.className}</h3>
               <p className="text-sm text-zinc-500 dark:text-zinc-400">

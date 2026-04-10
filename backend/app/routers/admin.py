@@ -8,11 +8,15 @@ from app.database import get_db
 from app.deps import oid, require_admin
 from app.schemas import (
     ClassCreate,
+    ClassUpdate,
     ExamCreate,
+    ExamUpdate,
     SchoolSettingsOut,
     SchoolSettingsUpdate,
     StudentCreate,
+    StudentUpdate,
     TeacherCreate,
+    TeacherUpdate,
     TimetableCreate,
 )
 
@@ -97,6 +101,28 @@ async def create_teacher(body: TeacherCreate, _: Annotated[dict, Depends(require
     return {"_id": str(ins_t.inserted_id), "name": body.name, "username": uname}
 
 
+@router.patch("/admin/teachers/{teacher_id}")
+async def update_teacher(teacher_id: str, body: TeacherUpdate, _: Annotated[dict, Depends(require_admin)]):
+    db = get_db()
+    t_oid = oid(teacher_id)
+    update_data = {}
+    if body.name is not None:
+        update_data["name"] = body.name
+    if body.subjectAssignments is not None:
+        update_data["subjectAssignments"] = [
+            {"classId": oid(a["classId"]), "subjectName": a.get("subjectName", "")}
+            for a in body.subjectAssignments
+            if a.get("classId")
+        ]
+    if update_data:
+        await db.teachers.update_one({"_id": t_oid}, {"$set": update_data})
+        if "name" in update_data:
+            t = await db.teachers.find_one({"_id": t_oid})
+            if t and t.get("userId"):
+                await db.users.update_one({"_id": t["userId"]}, {"$set": {"displayName": body.name}})
+    return {"ok": True}
+
+
 async def _class_out(db, c: dict) -> dict:
     tname = None
     if c.get("classTeacherId"):
@@ -129,6 +155,20 @@ async def create_class(body: ClassCreate, _: Annotated[dict, Depends(require_adm
     ins = await db.classes.insert_one(doc)
     c = await db.classes.find_one({"_id": ins.inserted_id})
     return await _class_out(db, c)
+
+
+@router.patch("/classes/{class_id}")
+async def update_class(class_id: str, body: ClassUpdate, _: Annotated[dict, Depends(require_admin)]):
+    db = get_db()
+    c_oid = oid(class_id)
+    upd = {}
+    if body.className is not None:
+        upd["className"] = body.className.strip()
+    if body.classTeacherId is not None:
+        upd["classTeacherId"] = oid(body.classTeacherId) if body.classTeacherId else None
+    if upd:
+        await db.classes.update_one({"_id": c_oid}, {"$set": upd})
+    return {"ok": True}
 
 
 @router.get("/students")
@@ -179,6 +219,26 @@ async def create_student(body: StudentCreate, _: Annotated[dict, Depends(require
         "rollNo": doc["rollNo"],
         "classId": {"_id": str(cid), "className": cl.get("className") if cl else ""},
     }
+
+
+@router.patch("/students/{student_id}")
+async def update_student(student_id: str, body: StudentUpdate, _: Annotated[dict, Depends(require_admin)]):
+    db = get_db()
+    s_oid = oid(student_id)
+    upd = {}
+    if body.name is not None:
+        upd["name"] = body.name.strip()
+    if body.rollNo is not None:
+        upd["rollNo"] = body.rollNo.strip()
+    if body.classId is not None:
+        upd["classId"] = oid(body.classId)
+    if upd:
+        await db.students.update_one({"_id": s_oid}, {"$set": upd})
+        if "name" in upd:
+            s_doc = await db.students.find_one({"_id": s_oid})
+            if s_doc and s_doc.get("userId"):
+                await db.users.update_one({"_id": s_doc["userId"]}, {"$set": {"displayName": upd["name"]}})
+    return {"ok": True}
 
 
 @router.get("/timetable")
@@ -295,6 +355,23 @@ async def create_exam(body: ExamCreate, _: Annotated[dict, Depends(require_admin
         "session": e.get("session", ""),
         "classId": {"_id": str(e["classId"]), "className": cl.get("className") if cl else ""},
     }
+
+
+@router.patch("/exams/{exam_id}")
+async def update_exam(exam_id: str, body: ExamUpdate, _: Annotated[dict, Depends(require_admin)]):
+    db = get_db()
+    e_oid = oid(exam_id)
+    upd = {}
+    if body.eventName is not None:
+        upd["eventName"] = body.eventName.strip()
+        upd["name"] = upd["eventName"]
+    if body.date is not None:
+        upd["date"] = body.date
+    if body.subject is not None:
+        upd["subject"] = body.subject.strip()
+    if upd:
+        await db.exams.update_one({"_id": e_oid}, {"$set": upd})
+    return {"ok": True}
 
 
 @router.delete("/timetable/{entry_id}")
