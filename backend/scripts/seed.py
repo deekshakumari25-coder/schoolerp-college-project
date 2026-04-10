@@ -39,8 +39,8 @@ async def main():
         {
             "$set": {
                 "key": "default",
-                "schoolName": "Global Excellence Academy",
-                "logoUrl": None,
+                "schoolName": "SH School",
+                "logoUrl": "/school_logo.png",
                 "currentSession": "2025-26",
             }
         },
