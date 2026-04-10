@@ -55,7 +55,7 @@ export function PortalHeader({ title }: { title: string }) {
             Password
           </Button>
         </ChangePasswordDialog>
-        <Button type="button" variant="ghost" size="sm" onClick={logout} className="text-red-600">
+        <Button type="button" variant="destructive" size="sm" onClick={logout} className="bg-red-600 hover:bg-red-700 text-white shadow-sm border-none">
           <IconLogout className="w-4 h-4 sm:mr-1" />
           <span className="hidden sm:inline">Logout</span>
         </Button>
