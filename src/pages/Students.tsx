@@ -114,6 +114,7 @@ export default function Students() {
 
       {showAdd && (
         <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="col-span-full flex justify-between items-center mb-2">
               <h3 className="text-lg font-semibold text-zinc-900 dark:text-white">
                 {editingId ? 'Edit Student' : 'New Student'}

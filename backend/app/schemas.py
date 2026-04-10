@@ -82,9 +82,8 @@ class StudentUpdate(BaseModel):
 
 
 class TimetableCreate(BaseModel):
-    scope: Literal["class", "teacher"] = "class"
-    classId: str | None = None
-    teacherId: str | None = None
+    classId: str
+    teacherId: str
     day: str
     subject: str
     time: str

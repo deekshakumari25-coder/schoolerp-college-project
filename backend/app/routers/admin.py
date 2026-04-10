@@ -251,12 +251,18 @@ async def list_timetable(_: Annotated[dict, Depends(require_admin)]):
         if cl_id:
             c = await db.classes.find_one({"_id": cl_id})
             cl_name = c.get("className") if c else None
+            
+        t_name = None
+        t_id = row.get("teacherId")
+        if t_id:
+            t = await db.teachers.find_one({"_id": t_id})
+            t_name = t.get("name") if t else None
+            
         out.append(
             {
                 "_id": str(row["_id"]),
-                "scope": row.get("scope", "class"),
                 "classId": {"_id": str(cl_id), "className": cl_name} if cl_id else None,
-                "teacherId": str(row["teacherId"]) if row.get("teacherId") else None,
+                "teacherId": {"_id": str(t_id), "name": t_name} if t_id else None,
                 "day": row.get("day"),
                 "subject": row.get("subject"),
                 "time": row.get("time"),
@@ -269,36 +275,32 @@ async def list_timetable(_: Annotated[dict, Depends(require_admin)]):
 @router.post("/timetable")
 async def create_timetable(body: TimetableCreate, _: Annotated[dict, Depends(require_admin)]):
     db = get_db()
+    
+    # Verify relations
+    c = await db.classes.find_one({"_id": oid(body.classId)})
+    if not c:
+        raise HTTPException(404, "Class not found")
+        
+    t = await db.teachers.find_one({"_id": oid(body.teacherId)})
+    if not t:
+        raise HTTPException(404, "Teacher not found")
+
     doc: dict[str, Any] = {
-        "scope": body.scope,
+        "classId": oid(body.classId),
+        "teacherId": oid(body.teacherId),
         "day": body.day,
         "subject": body.subject.strip(),
         "time": body.time,
     }
     if body.room:
         doc["room"] = body.room
-    if body.scope == "class":
-        if not body.classId:
-            raise HTTPException(400, "classId required for class scope")
-        doc["classId"] = oid(body.classId)
-        doc["teacherId"] = None
-    else:
-        if not body.teacherId:
-            raise HTTPException(400, "teacherId required for teacher scope")
-        doc["teacherId"] = oid(body.teacherId)
-        doc["classId"] = None
+        
     ins = await db.timetable_entries.insert_one(doc)
     row = await db.timetable_entries.find_one({"_id": ins.inserted_id})
-    cl_id = row.get("classId")
-    cl_name = None
-    if cl_id:
-        c = await db.classes.find_one({"_id": cl_id})
-        cl_name = c.get("className") if c else None
     return {
         "_id": str(row["_id"]),
-        "scope": row.get("scope"),
-        "classId": {"_id": str(cl_id), "className": cl_name} if cl_id else None,
-        "teacherId": str(row["teacherId"]) if row.get("teacherId") else None,
+        "classId": {"_id": str(c["_id"]), "className": c.get("className")},
+        "teacherId": str(row["teacherId"]),
         "day": row["day"],
         "subject": row["subject"],
         "time": row["time"],
