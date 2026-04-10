@@ -137,11 +137,15 @@ async def list_students(_: Annotated[dict, Depends(require_admin)]):
     out = []
     async for s in db.students.find().sort("rollNo", 1):
         cl = await db.classes.find_one({"_id": s.get("classId")})
+        base = {k: v for k, v in s.items() if k not in ["_id", "classId"]}
+        if "userId" in base and isinstance(base["userId"], ObjectId):
+            base["userId"] = str(base["userId"])
+        
         out.append(
             {
-                **{k: v for k, v in s.items() if k != "_id" and k != "classId"},
+                **base,
                 "_id": str(s["_id"]),
-                "classId": {"_id": str(s["classId"]), "className": cl.get("className") if cl else ""},
+                "classId": {"_id": str(s["classId"]), "className": cl.get("className") if cl else ""} if s.get("classId") else None,
             }
         )
     return out

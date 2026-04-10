@@ -29,20 +29,16 @@ export function PortalHeader({ title }: { title: string }) {
   return (
     <header className="h-auto min-h-16 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 flex flex-wrap items-center justify-between gap-4 px-6 py-3">
       <div className="flex items-center gap-4 min-w-0">
-        {school?.logoUrl ? (
-          <img
-            src={school.logoUrl}
-            alt=""
-            className="h-10 w-10 rounded-lg object-contain border border-zinc-200 dark:border-zinc-700 shrink-0"
-          />
-        ) : (
-          <div className="h-10 w-10 rounded-lg bg-zinc-200 dark:bg-zinc-700 shrink-0" />
-        )}
+        <img
+          src="/school_logo.png"
+          alt="SH School Logo"
+          className="h-10 w-10 rounded-lg object-contain border border-zinc-200 dark:border-zinc-700 shrink-0 bg-white"
+        />
         <div className="min-w-0">
-          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-50 truncate">
-            {school?.schoolName ?? 'School'}
+          <p className="text-sm font-bold text-zinc-900 dark:text-zinc-50 truncate">
+            SH School
           </p>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 font-medium">
             Session {school?.currentSession ?? '—'}
           </p>
         </div>
