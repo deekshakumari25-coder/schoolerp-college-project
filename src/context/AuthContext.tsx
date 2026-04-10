@@ -1,36 +1,60 @@
-import { createContext, useState, useEffect, type ReactNode } from 'react';
+import { createContext, useState, useEffect, useCallback, type ReactNode } from 'react';
+import { api } from '@/lib/api';
+import type { UserMe } from '@/types/auth';
 
-// Create the context
 export const AuthContext = createContext({
   token: null as string | null,
-  login: (_token: string) => {},
+  user: null as UserMe | null,
+  loading: true,
+  login: (_token: string, _user: UserMe) => {},
   logout: () => {},
+  refreshMe: async () => {},
 });
 
-// Create a provider component
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<UserMe | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Check if the user is already logged in when the app starts
-    const savedToken = localStorage.getItem('token');
-    if (savedToken) {
-      setToken(savedToken);
+  const refreshMe = useCallback(async () => {
+    const t = localStorage.getItem('token');
+    if (!t) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
+    try {
+      const { data } = await api.get<UserMe>('/api/auth/me');
+      setUser(data);
+    } catch {
+      setUser(null);
+      setToken(null);
+      localStorage.removeItem('token');
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const login = (newToken: string) => {
+  useEffect(() => {
+    const saved = localStorage.getItem('token');
+    if (saved) setToken(saved);
+    refreshMe();
+  }, [refreshMe]);
+
+  const login = (newToken: string, u: UserMe) => {
     setToken(newToken);
+    setUser(u);
     localStorage.setItem('token', newToken);
   };
 
   const logout = () => {
     setToken(null);
+    setUser(null);
     localStorage.removeItem('token');
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, logout }}>
+    <AuthContext.Provider value={{ token, user, loading, login, logout, refreshMe }}>
       {children}
     </AuthContext.Provider>
   );
