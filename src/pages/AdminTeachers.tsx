@@ -203,7 +203,14 @@ export default function AdminTeachers() {
                 <td className="p-3">{r.username}</td>
                 <td className="p-3 text-zinc-600 dark:text-zinc-400">
                   {r.subjectAssignments?.length
-                    ? r.subjectAssignments.map((a) => `${a.subjectName} (${a.classId})`).join(', ')
+                    ? r.subjectAssignments
+                        .map((a) => {
+                          const className = classes.find((c) => c._id === a.classId)?.className;
+                          return className
+                            ? `${a.subjectName} (${className})`
+                            : a.subjectName;
+                        })
+                        .join(', ')
                     : '—'}
                 </td>
                 <td className="p-3 text-right">
