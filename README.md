@@ -7,17 +7,20 @@ A modern, fast, and fully-featured school management system built using React (F
 This project requires two terminals to run simultaneously: one for the React frontend and one for the FastAPI backend.
 
 ### 1. Start the Backend (FastAPI)
-Open a terminal and navigate to the `backend` directory.
+
+From the **project root**, open a terminal, **change into the `backend` folder first**, then start Uvicorn. The app module path (`app.main:app`) only works when your current directory is `backend`.
 
 ```bash
 cd backend
+
 # Install dependencies (only needed once)
 pip install -r requirements.txt
 
-# Start the server
+# Run the Python API server (must be run from inside backend/)
 uvicorn app.main:app --reload
 ```
-*The backend will be available at http://localhost:8000*
+
+The backend will be available at http://localhost:8000
 
 ### 2. Start the Frontend (React + Vite)
 Open a **second** terminal and stay in the root project directory.

@@ -4,7 +4,6 @@ motor
 pymongo
 dnspython
 python-jose[cryptography]
-passlib[bcrypt]
-bcrypt
+bcrypt>=4.0.1
 python-multipart
 pydantic-settings
