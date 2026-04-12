@@ -35,6 +35,7 @@ export default function Timetable() {
   const [day, setDay] = useState('Monday');
   const [subject, setSubject] = useState('');
   const [time, setTime] = useState('');
+  const [filterClass, setFilterClass] = useState('');
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
@@ -200,8 +201,33 @@ export default function Timetable() {
         </div>
       )}
 
+      {/* Class filter */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Filter by class:</span>
+        <div className="relative">
+          <select
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          >
+            <option value="">All Classes</option>
+            {classes.map((c) => (
+              <option key={c._id} value={c._id}>{c.className}</option>
+            ))}
+          </select>
+        </div>
+        {filterClass && (
+          <button
+            onClick={() => setFilterClass('')}
+            className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       <div className="space-y-6">
-        {classes.map(c => {
+        {classes.filter(c => !filterClass || c._id === filterClass).map(c => {
           const classTimetable = timetable.filter(t => t.classId?._id === c._id);
           if (classTimetable.length === 0) return null;
           

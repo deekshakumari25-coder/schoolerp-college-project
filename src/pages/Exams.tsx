@@ -26,13 +26,17 @@ export default function Exams() {
   const [classId, setClassId] = useState('');
   const [subject, setSubject] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [filterClass, setFilterClass] = useState('');
 
-  const examsByClass = classes.map((c) => ({
-    classData: c,
-    exams: exams.filter((e) => e.classId?._id === c._id),
-  })).filter(group => group.exams.length > 0);
+  const examsByClass = classes
+    .map((c) => ({
+      classData: c,
+      exams: exams.filter((e) => e.classId?._id === c._id),
+    }))
+    .filter((group) => group.exams.length > 0)
+    .filter((group) => !filterClass || group.classData._id === filterClass);
   
-  const unassignedExams = exams.filter((e) => !e.classId);
+  const unassignedExams = exams.filter((e) => !e.classId && (!filterClass || filterClass === 'unassigned'));
 
   useEffect(() => {
     fetchData();
@@ -186,6 +190,32 @@ export default function Exams() {
           </form>
         </div>
       )}
+
+      {/* Class filter */}
+      <div className="flex items-center gap-3">
+        <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">Filter by class:</span>
+        <div className="relative">
+          <select
+            value={filterClass}
+            onChange={(e) => setFilterClass(e.target.value)}
+            className="rounded-lg border border-zinc-300 px-3 py-1.5 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+          >
+            <option value="">All Classes</option>
+            {classes.map((c) => (
+              <option key={c._id} value={c._id}>{c.className}</option>
+            ))}
+            <option value="unassigned">Unassigned</option>
+          </select>
+        </div>
+        {filterClass && (
+          <button
+            onClick={() => setFilterClass('')}
+            className="text-xs text-zinc-500 hover:text-zinc-700 dark:hover:text-zinc-300"
+          >
+            Clear
+          </button>
+        )}
+      </div>
 
       <div className="space-y-6">
         {exams.length === 0 ? (
