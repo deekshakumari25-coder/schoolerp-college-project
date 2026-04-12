@@ -16,11 +16,19 @@ async def get_school_settings_dict(db):
             "schoolName": "School",
             "logoUrl": None,
             "currentSession": "2025-26",
+            "sessionStartDate": None,
+            "sessionEndDate": None,
+            "schoolWebsite": None,
+            "schoolAddress": None,
         }
     return {
         "schoolName": doc.get("schoolName", "School"),
         "logoUrl": doc.get("logoUrl"),
         "currentSession": doc.get("currentSession", "2025-26"),
+        "sessionStartDate": doc.get("sessionStartDate"),
+        "sessionEndDate": doc.get("sessionEndDate"),
+        "schoolWebsite": doc.get("schoolWebsite"),
+        "schoolAddress": doc.get("schoolAddress"),
     }
 
 

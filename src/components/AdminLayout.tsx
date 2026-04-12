@@ -11,6 +11,7 @@ import {
   IconSchool,
   IconUserPlus,
   IconShieldLock,
+  IconClipboardList,
 } from '@tabler/icons-react';
 
 const base = '/admin';
@@ -26,6 +27,7 @@ export default function AdminLayout() {
     { name: 'Classes', path: `${base}/classes`, icon: <IconBooks className="w-5 h-5 mr-3" /> },
     { name: 'Timetable', path: `${base}/timetable`, icon: <IconCalendarEvent className="w-5 h-5 mr-3" /> },
     { name: 'Exams', path: `${base}/exams`, icon: <IconFileCertificate className="w-5 h-5 mr-3" /> },
+    { name: 'Attendance', path: `${base}/attendance`, icon: <IconClipboardList className="w-5 h-5 mr-3" /> },
     { name: 'School', path: `${base}/school`, icon: <IconSchool className="w-5 h-5 mr-3" /> },
   ];
 

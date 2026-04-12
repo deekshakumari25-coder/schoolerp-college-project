@@ -1,7 +1,8 @@
+from calendar import monthrange
 from typing import Annotated, Any
 
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.auth_utils import hash_password
 from app.database import get_db
@@ -36,6 +37,14 @@ async def admin_patch_school(
         update["logoUrl"] = body.logoUrl
     if body.currentSession is not None:
         update["currentSession"] = body.currentSession
+    if body.sessionStartDate is not None:
+        update["sessionStartDate"] = body.sessionStartDate
+    if body.sessionEndDate is not None:
+        update["sessionEndDate"] = body.sessionEndDate
+    if body.schoolWebsite is not None:
+        update["schoolWebsite"] = body.schoolWebsite
+    if body.schoolAddress is not None:
+        update["schoolAddress"] = body.schoolAddress
     if not update:
         doc = await db.school_settings.find_one({"key": "default"})
     else:
@@ -50,6 +59,10 @@ async def admin_patch_school(
         schoolName=doc.get("schoolName", "School") if doc else "School",
         logoUrl=doc.get("logoUrl") if doc else None,
         currentSession=doc.get("currentSession", "2025-26") if doc else "2025-26",
+        sessionStartDate=doc.get("sessionStartDate") if doc else None,
+        sessionEndDate=doc.get("sessionEndDate") if doc else None,
+        schoolWebsite=doc.get("schoolWebsite") if doc else None,
+        schoolAddress=doc.get("schoolAddress") if doc else None,
     )
 
 
@@ -185,6 +198,10 @@ async def list_students(_: Annotated[dict, Depends(require_admin)]):
             {
                 **base,
                 "_id": str(s["_id"]),
+                "fatherName": s.get("fatherName"),
+                "motherName": s.get("motherName"),
+                "address": s.get("address"),
+                "dob": s.get("dob"),
                 "classId": {"_id": str(s["classId"]), "className": cl.get("className") if cl else ""} if s.get("classId") else None,
             }
         )
@@ -195,7 +212,15 @@ async def list_students(_: Annotated[dict, Depends(require_admin)]):
 async def create_student(body: StudentCreate, _: Annotated[dict, Depends(require_admin)]):
     db = get_db()
     cid = oid(body.classId)
-    doc = {"name": body.name.strip(), "rollNo": body.rollNo.strip(), "classId": cid}
+    doc: dict[str, Any] = {"name": body.name.strip(), "rollNo": body.rollNo.strip(), "classId": cid}
+    if body.fatherName:
+        doc["fatherName"] = body.fatherName.strip()
+    if body.motherName:
+        doc["motherName"] = body.motherName.strip()
+    if body.address:
+        doc["address"] = body.address.strip()
+    if body.dob:
+        doc["dob"] = body.dob
     ins = await db.students.insert_one(doc)
     sid = ins.inserted_id
     if body.username and body.password:
@@ -217,6 +242,10 @@ async def create_student(body: StudentCreate, _: Annotated[dict, Depends(require
         "_id": str(sid),
         "name": doc["name"],
         "rollNo": doc["rollNo"],
+        "fatherName": doc.get("fatherName"),
+        "motherName": doc.get("motherName"),
+        "address": doc.get("address"),
+        "dob": doc.get("dob"),
         "classId": {"_id": str(cid), "className": cl.get("className") if cl else ""},
     }
 
@@ -232,6 +261,14 @@ async def update_student(student_id: str, body: StudentUpdate, _: Annotated[dict
         upd["rollNo"] = body.rollNo.strip()
     if body.classId is not None:
         upd["classId"] = oid(body.classId)
+    if body.fatherName is not None:
+        upd["fatherName"] = body.fatherName.strip()
+    if body.motherName is not None:
+        upd["motherName"] = body.motherName.strip()
+    if body.address is not None:
+        upd["address"] = body.address.strip()
+    if body.dob is not None:
+        upd["dob"] = body.dob
     if upd:
         await db.students.update_one({"_id": s_oid}, {"$set": upd})
         if "name" in upd:
@@ -383,3 +420,36 @@ async def delete_timetable(entry_id: str, _: Annotated[dict, Depends(require_adm
     if res.deleted_count == 0:
         raise HTTPException(404, "Not found")
     return {"ok": True}
+
+
+@router.get("/admin/attendance/report")
+async def admin_attendance_report(
+    _: Annotated[dict, Depends(require_admin)],
+    classId: str = Query(...),
+    month: int = Query(..., ge=1, le=12),
+    year: int = Query(..., ge=2000, le=2100),
+):
+    db = get_db()
+    cid = oid(classId)
+    _, last = monthrange(year, month)
+    start = f"{year:04d}-{month:02d}-01"
+    end = f"{year:04d}-{month:02d}-{last:02d}"
+    students = []
+    async for s in db.students.find({"classId": cid}).sort("rollNo", 1):
+        students.append({"_id": str(s["_id"]), "name": s.get("name"), "rollNo": s.get("rollNo")})
+    student_ids = [ObjectId(s["_id"]) for s in students]
+    by_student_date: dict[str, dict[str, str]] = {}
+    async for a in db.attendance.find(
+        {"studentId": {"$in": student_ids}, "date": {"$gte": start, "$lte": end}}
+    ):
+        sid = str(a["studentId"])
+        by_student_date.setdefault(sid, {})[a["date"]] = a.get("status", "")
+    days = [f"{year:04d}-{month:02d}-{d:02d}" for d in range(1, last + 1)]
+    return {
+        "classId": classId,
+        "month": month,
+        "year": year,
+        "days": days,
+        "students": students,
+        "cells": by_student_date,
+    }

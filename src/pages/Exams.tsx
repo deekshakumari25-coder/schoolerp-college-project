@@ -57,7 +57,7 @@ export default function Exams() {
     e.preventDefault();
     try {
       if (editingId) {
-        await api.patch(`/api/admin/exams/${editingId}`, { eventName, date, classId, subject: subject || undefined });
+        await api.patch(`/api/exams/${editingId}`, { eventName, date, classId, subject: subject || undefined });
         setEditingId(null);
       } else {
         await api.post('/api/exams', { eventName, date, classId, subject: subject || undefined });

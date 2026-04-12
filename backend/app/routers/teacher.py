@@ -60,6 +60,10 @@ async def my_class_student_detail(student_id: str, payload: Annotated[dict, Depe
         "_id": str(s["_id"]),
         "name": s.get("name"),
         "rollNo": s.get("rollNo"),
+        "fatherName": s.get("fatherName"),
+        "motherName": s.get("motherName"),
+        "address": s.get("address"),
+        "dob": s.get("dob"),
         "subjectTeacherFor": subjects,
     }
 

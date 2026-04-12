@@ -13,4 +13,8 @@ export interface SchoolSettings {
   schoolName: string;
   logoUrl: string | null;
   currentSession: string;
+  sessionStartDate?: string | null;
+  sessionEndDate?: string | null;
+  schoolWebsite?: string | null;
+  schoolAddress?: string | null;
 }

@@ -28,12 +28,20 @@ class SchoolSettingsOut(BaseModel):
     schoolName: str
     logoUrl: str | None = None
     currentSession: str
+    sessionStartDate: str | None = None
+    sessionEndDate: str | None = None
+    schoolWebsite: str | None = None
+    schoolAddress: str | None = None
 
 
 class SchoolSettingsUpdate(BaseModel):
     schoolName: str | None = None
     logoUrl: str | None = None
     currentSession: str | None = None
+    sessionStartDate: str | None = None
+    sessionEndDate: str | None = None
+    schoolWebsite: str | None = None
+    schoolAddress: str | None = None
 
 
 class TeacherCreate(BaseModel):
@@ -71,6 +79,10 @@ class StudentCreate(BaseModel):
     name: str
     rollNo: str
     classId: str
+    fatherName: str | None = None
+    motherName: str | None = None
+    address: str | None = None
+    dob: str | None = None
     username: str | None = None
     password: str | None = None
 
@@ -79,6 +91,10 @@ class StudentUpdate(BaseModel):
     name: str | None = None
     rollNo: str | None = None
     classId: str | None = None
+    fatherName: str | None = None
+    motherName: str | None = None
+    address: str | None = None
+    dob: str | None = None
 
 
 class TimetableCreate(BaseModel):

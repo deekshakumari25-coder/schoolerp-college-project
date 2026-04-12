@@ -6,59 +6,95 @@ export default function StudentAttendance() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [days, setDays] = useState<string[]>([]);
   const [cells, setCells] = useState<Record<string, string>>({});
+  const [loading, setLoading] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
-  useEffect(() => {
-    api
-      .get<{ days: string[]; cells: Record<string, string> }>('/api/student/attendance', {
+  const fetchReport = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setLoading(true);
+    setHasSearched(true);
+    try {
+      const { data } = await api.get<{ days: string[]; cells: Record<string, string> }>('/api/student/attendance', {
         params: { month, year },
-      })
-      .then(({ data }) => {
-        setDays(data.days);
-        setCells(data.cells);
-      })
-      .catch(console.error);
-  }, [month, year]);
+      });
+      setDays(data.days);
+      setCells(data.cells);
+    } catch (err) {
+      console.error(err);
+      alert('Failed to load attendance report');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Attendance</h2>
-      <div className="flex flex-wrap gap-4 items-end">
-        <div>
-          <label className="block text-xs text-zinc-500 mb-1">Month</label>
-          <select
-            value={month}
-            onChange={(e) => setMonth(Number(e.target.value))}
-            className="rounded-lg border border-zinc-300 px-3 py-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
+    <div className="space-y-6">
+      <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">Monthly Attendance Report</h2>
+      
+      <div className="p-6 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200 dark:border-zinc-800 shadow-sm">
+        <form onSubmit={fetchReport} className="flex flex-wrap items-end gap-4">
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Month</label>
+            <select
+              value={month}
+              onChange={(e) => setMonth(Number(e.target.value))}
+              className="rounded-lg border border-zinc-300 px-3 py-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+            >
+              {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'].map((m, i) => (
+                <option key={i + 1} value={i + 1}>
+                  {m}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">Year</label>
+            <input
+              type="number"
+              value={year}
+              onChange={(e) => setYear(Number(e.target.value))}
+              className="rounded-lg border border-zinc-300 px-3 py-2 w-28 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+          </div>
+          <button 
+            type="submit"
+            disabled={loading}
+            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg shadow-sm transition-colors disabled:opacity-50"
           >
-            {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-xs text-zinc-500 mb-1">Year</label>
-          <input
-            type="number"
-            value={year}
-            onChange={(e) => setYear(Number(e.target.value))}
-            className="rounded-lg border border-zinc-300 px-3 py-2 w-28 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white"
-          />
-        </div>
+            {loading ? 'Loading...' : 'Submit'}
+          </button>
+        </form>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4">
-        <div className="flex gap-1 min-w-max">
-          {days.map((d) => (
-            <div key={d} className="flex flex-col items-center w-10">
-              <span className="text-[10px] text-zinc-500">{d.slice(8)}</span>
-              <span className="text-sm font-medium mt-1 w-8 h-8 flex items-center justify-center rounded bg-zinc-100 dark:bg-zinc-800">
-                {cells[d] || '·'}
-              </span>
-            </div>
-          ))}
+
+      {hasSearched && !loading && (
+        <div className="overflow-x-auto rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
+          <h3 className="font-semibold text-zinc-900 dark:text-white mb-4">Report for {month}/{year}</h3>
+          <div className="flex gap-2 min-w-max">
+            {days.map((d) => {
+              const status = cells[d] || '—';
+              let statusClass = 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400';
+              if (status === 'P') statusClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+              if (status === 'A') statusClass = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+              if (status === 'L') statusClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+
+              return (
+                <div key={d} className="flex flex-col items-center w-10">
+                  <span className="text-[10px] uppercase font-bold text-zinc-500">{d.slice(8)}</span>
+                  <span className={`text-sm font-bold mt-1 w-8 h-8 flex items-center justify-center rounded-lg ${statusClass}`}>
+                    {status}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+          
+          <div className="mt-6 flex gap-4 text-xs font-medium text-zinc-500">
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-emerald-100 dark:bg-emerald-900/30"></span> P = Present</div>
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-red-100 dark:bg-red-900/30"></span> A = Absent</div>
+            <div className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-sm bg-amber-100 dark:bg-amber-900/30"></span> L = Late</div>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

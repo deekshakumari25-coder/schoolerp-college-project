@@ -43,7 +43,7 @@ export default function Classes() {
     e.preventDefault();
     try {
       if (editingId) {
-        await api.patch(`/api/admin/classes/${editingId}`, {
+        await api.patch(`/api/classes/${editingId}`, {
           className,
           classTeacherId: classTeacherId || null,
         });

@@ -14,6 +14,7 @@ import Timetable from '@/pages/Timetable';
 import Exams from '@/pages/Exams';
 import AdminTeachers from '@/pages/AdminTeachers';
 import AdminSchool from '@/pages/AdminSchool';
+import AdminAttendance from '@/pages/AdminAttendance';
 
 import TeacherNoClass from '@/pages/teacher/TeacherNoClass';
 import TeacherMyClass from '@/pages/teacher/TeacherMyClass';
@@ -93,6 +94,7 @@ export default function App() {
         <Route path="timetable" element={<Timetable />} />
         <Route path="exams" element={<Exams />} />
         <Route path="school" element={<AdminSchool />} />
+        <Route path="attendance" element={<AdminAttendance />} />
       </Route>
 
       <Route
