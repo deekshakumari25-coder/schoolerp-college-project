@@ -17,4 +17,6 @@ export interface SchoolSettings {
   sessionEndDate?: string | null;
   schoolWebsite?: string | null;
   schoolAddress?: string | null;
+  /** ISO YYYY-MM-DD; used in attendance grids */
+  holidayDates?: string[];
 }

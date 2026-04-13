@@ -20,7 +20,9 @@ async def get_school_settings_dict(db):
             "sessionEndDate": None,
             "schoolWebsite": None,
             "schoolAddress": None,
+            "holidayDates": [],
         }
+    hd = doc.get("holidayDates") or []
     return {
         "schoolName": doc.get("schoolName", "School"),
         "logoUrl": doc.get("logoUrl"),
@@ -29,6 +31,7 @@ async def get_school_settings_dict(db):
         "sessionEndDate": doc.get("sessionEndDate"),
         "schoolWebsite": doc.get("schoolWebsite"),
         "schoolAddress": doc.get("schoolAddress"),
+        "holidayDates": [str(x).strip() for x in hd if str(x).strip()],
     }
 
 

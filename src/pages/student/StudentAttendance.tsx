@@ -1,10 +1,18 @@
 import { useEffect, useState } from 'react';
 import { api } from '@/lib/api';
 
+interface DayMeta {
+  date: string;
+  weekdayShort: string;
+  isWeekend: boolean;
+  isHoliday: boolean;
+}
+
 export default function StudentAttendance() {
   const [month, setMonth] = useState(new Date().getMonth() + 1);
   const [year, setYear] = useState(new Date().getFullYear());
   const [days, setDays] = useState<string[]>([]);
+  const [dayMeta, setDayMeta] = useState<DayMeta[] | undefined>();
   const [cells, setCells] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -14,10 +22,15 @@ export default function StudentAttendance() {
     setLoading(true);
     setHasSearched(true);
     try {
-      const { data } = await api.get<{ days: string[]; cells: Record<string, string> }>('/api/student/attendance', {
+      const { data } = await api.get<{
+        days: string[];
+        dayMeta?: DayMeta[];
+        cells: Record<string, string>;
+      }>('/api/student/attendance', {
         params: { month, year },
       });
       setDays(data.days);
+      setDayMeta(data.dayMeta);
       setCells(data.cells);
     } catch (err) {
       console.error(err);
@@ -72,15 +85,22 @@ export default function StudentAttendance() {
           <div className="flex gap-2 min-w-max">
             {days.map((d) => {
               const status = cells[d] || '—';
+              const meta = dayMeta?.find((m) => m.date === d);
+              const off = meta?.isWeekend || meta?.isHoliday;
               let statusClass = 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400';
               if (status === 'P') statusClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
               if (status === 'A') statusClass = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
               if (status === 'L') statusClass = 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
 
               return (
-                <div key={d} className="flex flex-col items-center w-10">
-                  <span className="text-[10px] uppercase font-bold text-zinc-500">{d.slice(8)}</span>
-                  <span className={`text-sm font-bold mt-1 w-8 h-8 flex items-center justify-center rounded-lg ${statusClass}`}>
+                <div
+                  key={d}
+                  className={`flex flex-col items-center w-10 rounded-md px-0.5 py-1 ${off ? 'bg-violet-100/70 dark:bg-violet-950/35' : ''}`}
+                  title={meta ? `${meta.weekdayShort}${meta.isHoliday ? ' · Holiday' : ''}` : d}
+                >
+                  <span className="text-[10px] font-bold text-zinc-500 leading-tight">{d.slice(8)}</span>
+                  <span className="text-[9px] text-zinc-400 dark:text-zinc-500">{meta?.weekdayShort ?? ''}</span>
+                  <span className={`text-sm font-bold mt-0.5 w-8 h-8 flex items-center justify-center rounded-lg ${statusClass}`}>
                     {status}
                   </span>
                 </div>

@@ -32,6 +32,7 @@ class SchoolSettingsOut(BaseModel):
     sessionEndDate: str | None = None
     schoolWebsite: str | None = None
     schoolAddress: str | None = None
+    holidayDates: list[str] = Field(default_factory=list)
 
 
 class SchoolSettingsUpdate(BaseModel):
@@ -42,6 +43,7 @@ class SchoolSettingsUpdate(BaseModel):
     sessionEndDate: str | None = None
     schoolWebsite: str | None = None
     schoolAddress: str | None = None
+    holidayDates: list[str] | None = None
 
 
 class TeacherCreate(BaseModel):

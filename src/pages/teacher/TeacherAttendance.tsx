@@ -8,6 +8,13 @@ interface Stu {
   rollNo: string;
 }
 
+interface DayMeta {
+  date: string;
+  weekdayShort: string;
+  isWeekend: boolean;
+  isHoliday: boolean;
+}
+
 export default function TeacherAttendance() {
   const { user } = useContext(AuthContext);
   const [students, setStudents] = useState<Stu[]>([]);
@@ -17,6 +24,7 @@ export default function TeacherAttendance() {
   const [year, setYear] = useState(new Date().getFullYear());
   const [report, setReport] = useState<{
     days: string[];
+    dayMeta?: DayMeta[];
     students: Stu[];
     cells: Record<string, Record<string, string>>;
   } | null>(null);
@@ -144,26 +152,49 @@ export default function TeacherAttendance() {
               <thead>
                 <tr>
                   <th className="p-2 text-left sticky left-0 bg-zinc-50 dark:bg-zinc-800">Student</th>
-                  {report.days.map((d) => (
-                    <th key={d} className="p-1 border-l border-zinc-200 dark:border-zinc-700">
-                      {d.slice(8)}
-                    </th>
-                  ))}
+                  {report.days.map((d) => {
+                    const meta = report.dayMeta?.find((m) => m.date === d);
+                    const off = meta?.isWeekend || meta?.isHoliday;
+                    return (
+                      <th
+                        key={d}
+                        className={`p-1 border-l border-zinc-200 dark:border-zinc-700 align-bottom ${
+                          off ? 'bg-violet-100/80 dark:bg-violet-950/40 text-violet-900 dark:text-violet-200' : ''
+                        }`}
+                        title={meta ? `${meta.weekdayShort}${meta.isHoliday ? ' · Holiday' : ''}` : d}
+                      >
+                        <div className="font-semibold leading-tight">{d.slice(8)}</div>
+                        <div className="text-[10px] font-normal opacity-80">{meta?.weekdayShort ?? ''}</div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody>
                 {report.students.map((s) => (
                   <tr key={s._id}>
                     <td className="p-2 sticky left-0 bg-white dark:bg-zinc-900 font-medium">{s.rollNo}</td>
-                    {report.days.map((d) => (
-                      <td key={d} className="p-1 text-center border-l border-zinc-100 dark:border-zinc-800">
-                        {report.cells[s._id]?.[d] ?? ''}
-                      </td>
-                    ))}
+                    {report.days.map((d) => {
+                      const meta = report.dayMeta?.find((m) => m.date === d);
+                      const off = meta?.isWeekend || meta?.isHoliday;
+                      return (
+                        <td
+                          key={d}
+                          className={`p-1 text-center border-l border-zinc-100 dark:border-zinc-800 ${
+                            off ? 'bg-violet-50/90 dark:bg-violet-950/25' : ''
+                          }`}
+                        >
+                          {report.cells[s._id]?.[d] ?? ''}
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
             </table>
+            <p className="text-[11px] text-zinc-500 px-3 py-2 border-t border-zinc-200 dark:border-zinc-800">
+              All calendar days are shown. Violet columns are Saturday, Sunday, or a school holiday (set under Admin → School).
+            </p>
           </div>
         )}
       </section>

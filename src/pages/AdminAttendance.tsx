@@ -12,6 +12,13 @@ interface Stu {
   rollNo: string;
 }
 
+interface DayMeta {
+  date: string;
+  weekdayShort: string;
+  isWeekend: boolean;
+  isHoliday: boolean;
+}
+
 export default function AdminAttendance() {
   const [classes, setClasses] = useState<ClassRef[]>([]);
   const [classId, setClassId] = useState('');
@@ -22,6 +29,7 @@ export default function AdminAttendance() {
   
   const [report, setReport] = useState<{
     days: string[];
+    dayMeta?: DayMeta[];
     students: Stu[];
     cells: Record<string, Record<string, string>>;
   } | null>(null);
@@ -120,11 +128,24 @@ export default function AdminAttendance() {
               <thead>
                 <tr className="bg-zinc-50 dark:bg-zinc-800 border-b border-zinc-200 dark:border-zinc-700/50">
                   <th className="p-3 text-left font-semibold text-zinc-600 dark:text-zinc-300 sticky left-0 z-10 bg-zinc-50 dark:bg-zinc-800 border-r border-zinc-200 dark:border-zinc-700/50">Student</th>
-                  {report.days.map((d) => (
-                    <th key={d} className="p-2 font-medium text-center text-zinc-500 min-w-[32px] border-l border-zinc-200 dark:border-zinc-700/50">
-                      {d.slice(8)}
-                    </th>
-                  ))}
+                  {report.days.map((d) => {
+                    const meta = report.dayMeta?.find((m) => m.date === d);
+                    const off = meta?.isWeekend || meta?.isHoliday;
+                    return (
+                      <th
+                        key={d}
+                        className={`p-2 font-medium text-center min-w-[36px] border-l border-zinc-200 dark:border-zinc-700/50 ${
+                          off
+                            ? 'bg-violet-100/80 dark:bg-violet-950/40 text-violet-900 dark:text-violet-200'
+                            : 'text-zinc-500'
+                        }`}
+                        title={meta ? `${meta.weekdayShort}${meta.isHoliday ? ' · Holiday' : ''}` : d}
+                      >
+                        <div className="leading-tight">{d.slice(8)}</div>
+                        <div className="text-[10px] font-normal opacity-80">{meta?.weekdayShort ?? ''}</div>
+                      </th>
+                    );
+                  })}
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/50">
@@ -136,13 +157,20 @@ export default function AdminAttendance() {
                     </td>
                     {report.days.map((d) => {
                       const status = report.cells[s._id]?.[d] ?? '';
+                      const meta = report.dayMeta?.find((m) => m.date === d);
+                      const off = meta?.isWeekend || meta?.isHoliday;
                       let statusClass = '';
                       if (status === 'P') statusClass = 'text-emerald-600 font-bold';
                       if (status === 'A') statusClass = 'text-red-600 font-bold bg-red-50 dark:bg-red-900/10';
                       if (status === 'L') statusClass = 'text-amber-500 font-bold bg-amber-50 dark:bg-amber-900/10';
-                      
+
                       return (
-                        <td key={d} className={`p-2 text-center border-l border-zinc-100 dark:border-zinc-800/50 ${statusClass}`}>
+                        <td
+                          key={d}
+                          className={`p-2 text-center border-l border-zinc-100 dark:border-zinc-800/50 ${statusClass} ${
+                            off ? 'bg-violet-50/90 dark:bg-violet-950/25' : ''
+                          }`}
+                        >
                           {status}
                         </td>
                       );
@@ -153,10 +181,11 @@ export default function AdminAttendance() {
             </table>
           )}
           
-          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex gap-4 text-xs font-medium text-zinc-500 bg-zinc-50 dark:bg-zinc-900/50">
+          <div className="p-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-wrap gap-x-4 gap-y-2 text-xs font-medium text-zinc-500 bg-zinc-50 dark:bg-zinc-900/50">
             <div className="flex items-center gap-1.5"><span className="text-emerald-600 font-bold">P</span> = Present</div>
             <div className="flex items-center gap-1.5"><span className="text-red-600 font-bold px-1 bg-red-50 dark:bg-red-900/10 rounded">A</span> = Absent</div>
             <div className="flex items-center gap-1.5"><span className="text-amber-500 font-bold px-1 bg-amber-50 dark:bg-amber-900/10 rounded">L</span> = Late</div>
+            <div className="flex items-center gap-1.5">Violet = Sat / Sun / holiday (School settings)</div>
           </div>
         </div>
       )}

@@ -4,6 +4,7 @@ from typing import Annotated, Any
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.attendance_day_meta import day_meta_for_range, school_holiday_set
 from app.auth_utils import hash_password
 from app.database import get_db
 from app.deps import oid, require_admin
@@ -45,6 +46,8 @@ async def admin_patch_school(
         update["schoolWebsite"] = body.schoolWebsite
     if body.schoolAddress is not None:
         update["schoolAddress"] = body.schoolAddress
+    if body.holidayDates is not None:
+        update["holidayDates"] = [str(d).strip() for d in body.holidayDates if str(d).strip()]
     if not update:
         doc = await db.school_settings.find_one({"key": "default"})
     else:
@@ -55,6 +58,8 @@ async def admin_patch_school(
             upsert=True,
         )
         doc = await db.school_settings.find_one({"key": "default"})
+    hd = doc.get("holidayDates") if doc else None
+    holiday_dates = [str(x).strip() for x in (hd or []) if str(x).strip()]
     return SchoolSettingsOut(
         schoolName=doc.get("schoolName", "School") if doc else "School",
         logoUrl=doc.get("logoUrl") if doc else None,
@@ -63,6 +68,7 @@ async def admin_patch_school(
         sessionEndDate=doc.get("sessionEndDate") if doc else None,
         schoolWebsite=doc.get("schoolWebsite") if doc else None,
         schoolAddress=doc.get("schoolAddress") if doc else None,
+        holidayDates=holiday_dates,
     )
 
 
@@ -323,6 +329,7 @@ async def create_timetable(body: TimetableCreate, _: Annotated[dict, Depends(req
         raise HTTPException(404, "Teacher not found")
 
     doc: dict[str, Any] = {
+        "scope": "class",
         "classId": oid(body.classId),
         "teacherId": oid(body.teacherId),
         "day": body.day,
@@ -445,11 +452,14 @@ async def admin_attendance_report(
         sid = str(a["studentId"])
         by_student_date.setdefault(sid, {})[a["date"]] = a.get("status", "")
     days = [f"{year:04d}-{month:02d}-{d:02d}" for d in range(1, last + 1)]
+    holidays = await school_holiday_set(db)
+    day_meta = day_meta_for_range(days, holidays)
     return {
         "classId": classId,
         "month": month,
         "year": year,
         "days": days,
+        "dayMeta": day_meta,
         "students": students,
         "cells": by_student_date,
     }

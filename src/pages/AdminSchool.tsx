@@ -8,6 +8,7 @@ export default function AdminSchool() {
   const [sessionEndDate, setSessionEndDate] = useState('');
   const [schoolWebsite, setSchoolWebsite] = useState('');
   const [schoolAddress, setSchoolAddress] = useState('');
+  const [holidayDatesText, setHolidayDatesText] = useState('');
   const [loading, setLoading] = useState(true);
   const [saved, setSaved] = useState(false);
 
@@ -20,6 +21,7 @@ export default function AdminSchool() {
         setSessionEndDate(data.sessionEndDate || '');
         setSchoolWebsite(data.schoolWebsite || '');
         setSchoolAddress(data.schoolAddress || '');
+        setHolidayDatesText((data.holidayDates || []).join('\n'));
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -29,12 +31,17 @@ export default function AdminSchool() {
     e.preventDefault();
     setSaved(false);
     try {
+      const holidayDates = holidayDatesText
+        .split(/[\n,]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
       await api.patch<SchoolSettings>('/api/admin/school/settings', {
         currentSession,
         sessionStartDate: sessionStartDate || null,
         sessionEndDate: sessionEndDate || null,
         schoolWebsite: schoolWebsite || null,
         schoolAddress: schoolAddress || null,
+        holidayDates,
       });
       setSaved(true);
     } catch {
@@ -105,6 +112,21 @@ export default function AdminSchool() {
               placeholder="Full school address"
               rows={3}
               className="w-full rounded-lg border border-zinc-300 px-3 py-2 dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
+              Holiday dates (attendance grid)
+            </label>
+            <p className="text-xs text-zinc-500 mb-1">
+              One date per line, format YYYY-MM-DD. Shown like weekends in teacher and admin monthly attendance.
+            </p>
+            <textarea
+              value={holidayDatesText}
+              onChange={(e) => setHolidayDatesText(e.target.value)}
+              placeholder={'2026-01-26\n2026-03-14'}
+              rows={4}
+              className="w-full rounded-lg border border-zinc-300 px-3 py-2 font-mono text-sm dark:bg-zinc-800 dark:border-zinc-700 dark:text-white focus:ring-2 focus:ring-blue-500 outline-none resize-y"
             />
           </div>
         </div>

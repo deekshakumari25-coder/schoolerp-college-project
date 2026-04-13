@@ -4,6 +4,7 @@ from typing import Annotated, Any
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, Query
 
+from app.attendance_day_meta import day_meta_for_range, school_holiday_set
 from app.database import get_db
 from app.deps import oid, require_student
 from app.routers.teacher import _build_report_card
@@ -48,9 +49,8 @@ async def student_timetable(payload: Annotated[dict, Depends(require_student)]):
         return []
     cid = st["classId"]
     out = []
-    async for row in db.timetable_entries.find({"scope": "class", "classId": cid}).sort(
-        [("day", 1), ("time", 1)]
-    ):
+    q = {"classId": cid, "$or": [{"scope": "class"}, {"scope": {"$exists": False}}]}
+    async for row in db.timetable_entries.find(q).sort([("day", 1), ("time", 1)]):
         out.append(
             {
                 "_id": str(row["_id"]),
@@ -109,4 +109,6 @@ async def student_attendance(
     cells: dict[str, str] = {}
     async for a in db.attendance.find({"studentId": stu_oid, "date": {"$gte": start, "$lte": end}}):
         cells[a["date"]] = a.get("status", "")
-    return {"month": month, "year": year, "days": days, "cells": cells}
+    holidays = await school_holiday_set(db)
+    day_meta = day_meta_for_range(days, holidays)
+    return {"month": month, "year": year, "days": days, "dayMeta": day_meta, "cells": cells}
