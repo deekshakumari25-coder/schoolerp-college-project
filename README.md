@@ -12,9 +12,8 @@ A modern, fast, and fully-featured school management system built using React (F
 - **React Router** — client-side routing
 - **Tailwind CSS** (v4, `@tailwindcss/vite`) — styling
 - **Axios** — HTTP client to the FastAPI backend
-- **UI & UX** — Radix UI, `@base-ui/react`, shadcn tooling, **Tabler Icons**, **next-themes** (light/dark), **Sonner** (toasts), **react-day-picker**, **cmdk** (command palette), **input-otp**, **vaul** (drawers), **embla-carousel-react**, **react-resizable-panels**, **recharts** (charts)
-- **Utilities** — `clsx`, `tailwind-merge`, `class-variance-authority`, **date-fns**, **tw-animate-css**
-- **Fonts** — `@fontsource-variable/raleway`
+- **UI & UX** — shadcn 
+
 
 ### Backend
 
