@@ -2,6 +2,42 @@
 
 A modern, fast, and fully-featured school management system built using React (Frontend) and FastAPI (Backend) with MongoDB.
 
+## Technologies used
+
+### Frontend
+
+- **React** & **React DOM** — UI
+- **TypeScript** — typed JavaScript
+- **Vite** — dev server and production build
+- **React Router** — client-side routing
+- **Tailwind CSS** (v4, `@tailwindcss/vite`) — styling
+- **Axios** — HTTP client to the FastAPI backend
+- **UI & UX** — Radix UI, `@base-ui/react`, shadcn tooling, **Tabler Icons**, **next-themes** (light/dark), **Sonner** (toasts), **react-day-picker**, **cmdk** (command palette), **input-otp**, **vaul** (drawers), **embla-carousel-react**, **react-resizable-panels**, **recharts** (charts)
+- **Utilities** — `clsx`, `tailwind-merge`, `class-variance-authority`, **date-fns**, **tw-animate-css**
+- **Fonts** — `@fontsource-variable/raleway`
+
+### Backend
+
+- **Python** — runtime
+- **FastAPI** — HTTP API framework
+- **Uvicorn** — ASGI server
+- **Motor** & **PyMongo** + **dnspython** — async/sync MongoDB access
+- **Pydantic** & **pydantic-settings** — request/response models and settings
+- **python-jose** (cryptography) — JWT tokens
+- **bcrypt** — password hashing
+- **python-multipart** — form uploads
+
+### Database & auth
+
+- **MongoDB** — primary data store (users, classes, students, teachers, timetable, attendance, marks, exams, school settings)
+- **JWT** — session tokens after login; role-based access (admin, teacher, student)
+
+### Development tooling
+
+- **Bun** or **npm** — install scripts and local dev (`bun run dev` / `npm run dev`)
+- **pip** + **`requirements.txt`** — Python dependencies
+
+
 ## 🚀 How to Run the Project
 
 This project requires two terminals to run simultaneously: one for the React frontend and one for the FastAPI backend.
